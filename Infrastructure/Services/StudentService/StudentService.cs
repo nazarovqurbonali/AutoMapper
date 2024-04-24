@@ -1,8 +1,10 @@
 using System.Data.Common;
 using System.Net;
 using AutoMapper;
+using Domain.DTOs.GroupDto;
 using Domain.DTOs.StudentDTO;
 using Domain.Entities;
+using Domain.Filter;
 using Domain.Responses;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,8 @@ namespace Infrastructure.Services.StudentService;
 
 public class StudentService : IStudentService
 {
+    #region ctor
+
     private readonly DataContext _context;
     private readonly IMapper _mapper;
 
@@ -19,25 +23,58 @@ public class StudentService : IStudentService
         _context = context;
         _mapper = mapper;
     }
+    
 
+    #endregion
 
     #region GetStudentsAsync
 
-    public async Task<Response<List<GetStudentDto>>> GetStudentsAsync()
+    public async Task<PagedResponse<List<GetStudentDto>>> GetStudentsAsync(StudentFilter filter)
     {
         try
         {
-            var students = await _context.Students.ToListAsync();
-            var mapped = _mapper.Map<List<GetStudentDto>>(students);
-            return new Response<List<GetStudentDto>>(mapped);
+            var students = _context.Students.AsQueryable();
+
+            if (!string.IsNullOrEmpty(filter.Address))
+                students = students.Where(x => x.Address.ToLower().Contains(filter.Address.ToLower()));
+            if (!string.IsNullOrEmpty(filter.Email))
+                students = students.Where(x => x.Email.ToLower().Contains(filter.Email.ToLower()));
+
+            var response = await students
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize).ToListAsync();
+            var totalRecord = students.Count();
+
+            var mapped = _mapper.Map<List<GetStudentDto>>(response);
+            return new PagedResponse<List<GetStudentDto>>(mapped, filter.PageNumber, filter.PageSize, totalRecord);
+
         }
         catch (DbException dbEx)
         {
-            return new Response<List<GetStudentDto>>(HttpStatusCode.InternalServerError, dbEx.Message);
+            return new PagedResponse<List<GetStudentDto>>(HttpStatusCode.InternalServerError, dbEx.Message);
         }
         catch (Exception ex)
         {
-            return new Response<List<GetStudentDto>>(HttpStatusCode.InternalServerError, ex.Message);
+            return new PagedResponse<List<GetStudentDto>>(HttpStatusCode.InternalServerError, ex.Message);
+        }
+    }
+
+    public async Task<Response<List<GroupWithCountOfStudentDto>>> GetStudentWithCountOfStudentDtoAsync()
+    {
+        try
+        {
+            var existing = await (from g in _context.Groups
+                let count = _context.StudentGroups.Count(x => x.GroupId == g.Id)
+                select new GroupWithCountOfStudentDto
+                {
+                    Group = g,
+                    CountOfStudents = count
+                }).ToListAsync();
+            return new Response<List<GroupWithCountOfStudentDto>>(existing);
+        }
+        catch (Exception e)
+        {
+            return new Response<List<GroupWithCountOfStudentDto>>(HttpStatusCode.InternalServerError,e.Message);
         }
     }
 
@@ -107,6 +144,8 @@ public class StudentService : IStudentService
 
     #endregion
 
+    #region DeleteStudentAsync
+
     public async Task<Response<bool>> DeleteStudentAsync(int id)
     {
         try
@@ -122,4 +161,7 @@ public class StudentService : IStudentService
             return new Response<bool>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
+
+    #endregion
 }
+
