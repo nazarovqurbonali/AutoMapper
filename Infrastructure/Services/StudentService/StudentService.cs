@@ -1,6 +1,8 @@
+using System.ComponentModel;
 using System.Data.Common;
 using System.Net;
 using AutoMapper;
+using Domain.DTOs;
 using Domain.DTOs.GroupDto;
 using Domain.DTOs.StudentDTO;
 using Domain.Entities;
@@ -44,6 +46,25 @@ public class StudentService : IStudentService
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize).ToListAsync();
             var totalRecord = students.Count();
+            
+            
+            var query = (from s in _context.Students
+                join sg in _context.StudentGroups on s.Id equals sg.StudentId
+                join g in _context.Groups on sg.GroupId equals g.Id
+                join c in _context.Courses on g.CourseId equals c.Id
+                group g by new { s.FirstName, Course = c } into res
+                select new ExampleDto()
+                {
+                    StudentName = res.Key.FirstName ,
+                    Groups = res.ToList(),
+                    Course = res.Key.Course
+                });
+            
+            
+            
+            
+            
+            
 
             var mapped = _mapper.Map<List<GetStudentDto>>(response);
             return new PagedResponse<List<GetStudentDto>>(mapped, filter.PageNumber, filter.PageSize, totalRecord);
@@ -162,6 +183,42 @@ public class StudentService : IStudentService
         }
     }
 
+    public async Task<Response<string>> CreateTimeTableAsync(AddTimeTableDto timeTable)
+    {
+        try
+        {
+            var newTimeTable = new TimeTable()
+            {
+                CreateAt = DateTime.UtcNow,
+                UpdateAt = DateTime.UtcNow,
+                FromTime = TimeSpan.Parse(timeTable.FromTime),
+                ToTime = TimeSpan.Parse(timeTable.ToTime),
+                DayOfWeek = timeTable.DayOfWeek
+            };
+
+            await _context.TimeTables.AddAsync(newTimeTable);
+            await _context.SaveChangesAsync();
+
+            return new Response<string>("Success");
+        }
+        catch (DbException dbException)
+        {
+            return new Response<string>(HttpStatusCode.InternalServerError, dbException.Message);
+        }
+        catch (Exception exception)
+        {
+            return new Response<string>(HttpStatusCode.InternalServerError, exception.Message);
+        }
+    }
+
     #endregion
 }
 
+
+public class ExampleDto
+{
+    public string? StudentName { get; set; }
+    public int? CountGroup { get; set; }
+    public List<Group>? Groups { get; set; }
+    public Course? Course { get; set; }
+}

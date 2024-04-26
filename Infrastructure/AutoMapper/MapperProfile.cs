@@ -1,4 +1,5 @@
 using AutoMapper;
+using Domain.DTOs;
 using Domain.DTOs.StudentDTO;
 using Domain.Entities;
 
@@ -12,11 +13,13 @@ public class MapperProfile:Profile
         CreateMap<Student, GetStudentDto>().ReverseMap();
         CreateMap<Student, UpdateStudentDto>().ReverseMap();
         
-        // //ForMembers
-        // CreateMap< Student,GetStudentDto>()
-        //     .ForMember(sDto => sDto.FulName, opt => opt.MapFrom(s => $"{s.FirstName} {s.LastName}"))
-        //     .ForMember(sDto => sDto.EmailAddress, opt => opt.MapFrom(s =>s.Email));
-        //
+        //ForMembers
+        CreateMap<AddTimeTableDto, TimeTable>()
+            .ForMember(en => en.FromTime, dto=> dto.MapFrom(s => TimeSpan.Parse(s.FromTime)))
+            .ForMember(x => x.ToTime, opt
+                => opt.MapFrom(x => TimeSpan.Parse(x.ToTime)));
+
+
         // //Reverse map
         // CreateMap<BaseStudentDto,Student>().ReverseMap();
         //
@@ -24,6 +27,9 @@ public class MapperProfile:Profile
         // CreateMap<Student, AddStudentDto>()
         //     .ForMember(dest => dest.FirstName, opt => opt.Ignore());
 
+        // CreateMap<Course,AddTimeTableDto>()
+        //     .ForMember(x=>x.CourseN,y=>y.MapFrom(x=>x.CourseName))
+        //     .ForMember(x=>x.Desc,y=>y.Ignore())
 
     }   
 }

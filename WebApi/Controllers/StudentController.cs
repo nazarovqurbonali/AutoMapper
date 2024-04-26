@@ -1,4 +1,5 @@
 using System.Net;
+using Domain.DTOs;
 using Domain.DTOs.GroupDto;
 using Domain.DTOs.StudentDTO;
 using Domain.Entities;
@@ -49,12 +50,20 @@ public class StudentController:ControllerBase
     public async Task<Response<string>> UpdateStudentAsync([FromBody]UpdateStudentDto studentDto)
     {
         return await _studentService.UpdateStudentAsync(studentDto);
+        
+
     }
     
     [HttpDelete("{studentId:int}")]
-    public async Task<Response<bool>> DeleteStudentAsync([FromBody]int studentId)
+    public async Task<Response<bool>> DeleteStudentAsync([FromRoute]int studentId)
     {
         return await _studentService.DeleteStudentAsync(studentId);
+    }
+
+    [HttpPost("add-timetable")]
+    public async Task<Response<string>> AddTimeTable([FromBody] AddTimeTableDto timeTable)
+    {
+        return await _studentService.CreateTimeTableAsync(timeTable);
     }
 
     // [HttpOptions]
@@ -63,4 +72,15 @@ public class StudentController:ControllerBase
     //     return StatusCode(200, "Student");
     // }
     //
+    
+    
+   
+    //Bi
+    //nd
+    //BindNever
+    //FromBody,
+    //FromQuery
+    //FromHeader
+    //FromForm
+    //FromRoute
 }
