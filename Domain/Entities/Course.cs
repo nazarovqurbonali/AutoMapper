@@ -8,4 +8,5 @@ public class Course:BaseEntity
     public string? Description { get; set; }
     public Status Status { get; set; }
     public List<Group>? Groups { get; set; }
+    
 }

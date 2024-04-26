@@ -80,6 +80,44 @@ public class StudentService : IStudentService
         }
     }
 
+    public async Task<Response<List<GetStudentDto>>> GetStudents()
+    {
+        try
+        {
+            
+            var query2= from s in _context.Students
+                let countAt= _context.ProgressBooks.Count(x=>x.StudentId==s.Id && x.IsAttended==false)
+                    where countAt==0
+                    select new GetStudentDto
+              {
+                 
+             }
+            
+            
+            
+            
+            string filter = ".NET";
+            var query1 = await (from s in _context.Students
+                join sg in _context.StudentGroups on s.Id equals sg.StudentId
+                join g in _context.Groups on sg.GroupId equals g.Id
+                join c in _context.Courses on g.CourseId equals c.Id
+                where c.CourseName == filter
+                select new
+                {
+                    Student = s
+                }).ToListAsync();
+
+            var map = _mapper.Map<List<GetStudentDto>>(query1);
+            
+            return new Response<List<GetStudentDto>>(map);
+
+        }
+        catch (Exception e)
+        {
+            return new Response<List<GetStudentDto>>(HttpStatusCode.InternalServerError, e.Message);
+        }
+    }
+
     public async Task<Response<List<GroupWithCountOfStudentDto>>> GetStudentWithCountOfStudentDtoAsync()
     {
         try

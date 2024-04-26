@@ -10,6 +10,7 @@ namespace Infrastructure.Services.StudentService;
 public interface IStudentService
 {
     Task<PagedResponse<List<GetStudentDto>>> GetStudentsAsync(StudentFilter filter);
+    Task<Response<List<GetStudentDto>>> GetStudents();
     Task<Response<List<GroupWithCountOfStudentDto>>> GetStudentWithCountOfStudentDtoAsync();
     Task<Response<GetStudentDto>> GetStudentByIdAsync(int id);
     Task<Response<string>> CreateStudentAsync(AddStudentDto student);

@@ -1,3 +1,4 @@
+using Domain.Entities;
 using Domain.Enums;
 
 namespace Domain.DTOs.GroupDto;
@@ -11,4 +12,5 @@ public class GetGroupDto
     public int CourseId { get; set; }
     public DateTime CreateAt { get; set; }
     public DateTime UpdateAt { get; set; }
+    public Student? Student { get; set; }
 }

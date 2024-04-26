@@ -13,4 +13,5 @@ public class Student:BaseEntity
     public Gender Gender { get; set; }
     public DateTime DoB { get; set; }
     public List<StudentGroup>? StudentGroups { get; set; }
+    public List<ProgressBook> ProgressBooks { get; set; }
 }
